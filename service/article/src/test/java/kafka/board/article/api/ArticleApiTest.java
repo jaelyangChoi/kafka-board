@@ -11,6 +11,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestClient;
 
+import kafka.board.article.service.response.ArticlePageResponse;
 import kafka.board.article.service.response.ArticleResponse;
 
 public class ArticleApiTest {
@@ -40,6 +41,20 @@ public class ArticleApiTest {
 	void deleteTest() {
 		delete(265774697418973184L);
 		assertThrows(InternalServerError.class, ()-> read(265774697418973184L));
+	}
+
+
+	@Test
+	void readAllTEst(){
+		ArticlePageResponse response = restClient.get()
+			.uri("/v1/articles?boardId={boardId}&page={page}&pageSize={pageSize}", 1L, 50000L, 30L)
+			.retrieve()
+			.body(ArticlePageResponse.class);
+
+		System.out.println("response.getArticleCount() = " + response.getArticleCount());
+		for(ArticleResponse articleResponse : response.getArticles()) {
+			System.out.println("articleId = " + articleResponse.getArticleId());
+		}
 	}
 
 	void delete(long articleId) {

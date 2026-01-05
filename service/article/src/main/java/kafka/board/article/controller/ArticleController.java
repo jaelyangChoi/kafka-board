@@ -7,11 +7,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kafka.board.article.service.ArticleService;
 import kafka.board.article.service.request.ArticleCreateRequest;
 import kafka.board.article.service.request.ArticleUpdateRequest;
+import kafka.board.article.service.response.ArticlePageResponse;
 import kafka.board.article.service.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,15 @@ public class ArticleController {
 	@GetMapping("/{articleId}")
 	public ArticleResponse read(@PathVariable Long articleId) {
 		return articleService.read(articleId);
+	}
+
+	@GetMapping
+	public ArticlePageResponse readAll(
+		@RequestParam("boardId") Long boardId,
+		@RequestParam("page") Long page,
+		@RequestParam("pageSize") Long pageSize
+	) {
+		return articleService.readAll(boardId, page, pageSize);
 	}
 
 	@PostMapping
@@ -40,4 +51,5 @@ public class ArticleController {
 	public void delete(@PathVariable Long articleId) {
 		articleService.delete(articleId);
 	}
+
 }
