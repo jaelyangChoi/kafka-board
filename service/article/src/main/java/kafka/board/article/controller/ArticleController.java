@@ -1,5 +1,7 @@
 package kafka.board.article.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,4 +54,15 @@ public class ArticleController {
 		articleService.delete(articleId);
 	}
 
+
+
+
+	@GetMapping("/infinite-scroll")
+	public List<ArticleResponse> readAllInfiniteScroll(
+		@RequestParam("boardId") Long boardId,
+		@RequestParam("pageSize") Long pageSize,
+		@RequestParam(value = "lastArticleId", required = false) Long lastArticleId
+	) {
+		return articleService.readAllInfiniteScroll(boardId, pageSize, lastArticleId);
+	}
 }

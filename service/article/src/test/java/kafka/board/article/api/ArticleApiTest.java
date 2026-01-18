@@ -1,13 +1,11 @@
 package kafka.board.article.api;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.NoSuchElementException;
+import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestClient;
 
@@ -40,19 +38,18 @@ public class ArticleApiTest {
 	@Test
 	void deleteTest() {
 		delete(265774697418973184L);
-		assertThrows(InternalServerError.class, ()-> read(265774697418973184L));
+		assertThrows(InternalServerError.class, () -> read(265774697418973184L));
 	}
 
-
 	@Test
-	void readAllTEst(){
+	void readAllTEst() {
 		ArticlePageResponse response = restClient.get()
 			.uri("/v1/articles?boardId={boardId}&page={page}&pageSize={pageSize}", 1L, 50000L, 30L)
 			.retrieve()
 			.body(ArticlePageResponse.class);
 
 		System.out.println("response.getArticleCount() = " + response.getArticleCount());
-		for(ArticleResponse articleResponse : response.getArticles()) {
+		for (ArticleResponse articleResponse : response.getArticles()) {
 			System.out.println("articleId = " + articleResponse.getArticleId());
 		}
 	}
@@ -84,6 +81,33 @@ public class ArticleApiTest {
 			.body(request)
 			.retrieve() //응답을 가져온다
 			.body(ArticleResponse.class);
+	}
+
+	@Test
+	void readAllInfiniteScrollTest() {
+		var articles1 = restClient.get()
+			.uri("/v1/articles/infinite-scroll?boardId={boardId}&pageSize={pageSize}", 1L, 5L)
+			.retrieve()
+			.body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+			});
+
+		System.out.println("firstPage");
+		for (var article : articles1) {
+			System.out.println("articleId = " + article.getArticleId());
+		}
+
+		var lastArticleId = articles1.getLast().getArticleId();
+		var articles2 = restClient.get()
+			.uri("/v1/articles/infinite-scroll?boardId={boardId}&pageSize={pageSize}&lastArticleId={lastArticleId}",
+				1L, 5L, lastArticleId)
+			.retrieve()
+			.body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+			});
+
+		System.out.println("secondPage");
+		for (var article : articles2) {
+			System.out.println("articleId = " + article.getArticleId());
+		}
 	}
 
 	record ArticleCreateRequest(String title, String content, Long writerId, Long boardId) {
