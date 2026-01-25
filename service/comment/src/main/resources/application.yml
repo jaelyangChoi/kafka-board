@@ -11,6 +11,6 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
-    show-sql: false
+    show-sql: true
     hibernate:
       ddl-auto: none

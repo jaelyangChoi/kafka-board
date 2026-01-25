@@ -1,8 +1,12 @@
 package kafka.board.comment.api;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
 
+import kafka.board.comment.service.response.CommentPageResponse;
 import kafka.board.comment.service.response.CommentResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,10 +31,10 @@ public class CommentApiV2Test {
 	/**
 	 response1.getCommentId() = 273742689025339392
 	 response1.getPath() = 00003
-	 	response2.getCommentId() = 273742689948086272
-	 	response2.getPath() = 0000300000
-	 		response3.getCommentId() = 273742690115858432
-	 		response3.getPath() = 000030000000000
+	 response2.getCommentId() = 273742689948086272
+	 response2.getPath() = 0000300000
+	 response3.getCommentId() = 273742690115858432
+	 response3.getPath() = 000030000000000
 	 */
 
 	CommentResponse create(CommentCreateRequestV2 request) {
@@ -42,7 +46,7 @@ public class CommentApiV2Test {
 	}
 
 	@Test
-	void read(){
+	void read() {
 		CommentResponse response = restClient.get()
 			.uri("/v2/comments/{commentId}", 273742689025339392L)
 			.retrieve()
@@ -52,10 +56,63 @@ public class CommentApiV2Test {
 	}
 
 	@Test
-	void delete(){
+	void delete() {
 		restClient.delete()
 			.uri("/v2/comments/{commentId}", 273741956708249600L)
 			.retrieve();
+	}
+
+	@Test
+	void readAll() {
+		CommentPageResponse response = restClient.get()
+			.uri("/v2/comments?articleId=1&pageSize=10&page=50000")
+			.retrieve()
+			.body(CommentPageResponse.class);
+
+		System.out.println("response = " + response);
+		for (CommentResponse comment : response.getComments()) {
+			System.out.println("comment.getCommentId() = " + comment.getCommentId());
+		}
+	}
+	/*
+	first scroll
+	response.getCommentId() = 273776580476026884
+	response.getCommentId() = 273776580627021829
+	response.getCommentId() = 273776580631216132
+	response.getCommentId() = 273776580631216136
+	response.getCommentId() = 273776580631216139
+	second scroll
+	response.getCommentId() = 273776580635410433
+	response.getCommentId() = 273776580635410435
+	response.getCommentId() = 273776580635410437
+	response.getCommentId() = 273776580635410443
+	response.getCommentId() = 273776580635410444
+	 */
+
+	@Test
+	void readAllInfiniteScroll() {
+		List<CommentResponse> responses1 = restClient.get()
+			.uri("/v2/comments/infinite-scroll?articleId=1&pageSize=5")
+			.retrieve()
+			.body(new ParameterizedTypeReference<List<CommentResponse>>() {
+			});
+
+		System.out.println("first scroll");
+		for (CommentResponse response : responses1) {
+			System.out.println("response.getCommentId() = " + response.getCommentId());
+		}
+
+		String lastPath = responses1.get(responses1.size() - 1).getPath();
+		List<CommentResponse> responses2 = restClient.get()
+			.uri("/v2/comments/infinite-scroll?articleId=1&pageSize=5&lastPath=%s".formatted(lastPath))
+			.retrieve()
+			.body(new ParameterizedTypeReference<List<CommentResponse>>() {
+			});
+
+		System.out.println("second scroll");
+		for (CommentResponse response : responses2) {
+			System.out.println("response.getCommentId() = " + response.getCommentId());
+		}
 	}
 
 	@Getter

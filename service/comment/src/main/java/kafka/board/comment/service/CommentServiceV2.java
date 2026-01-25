@@ -2,6 +2,8 @@ package kafka.board.comment.service;
 
 import static java.util.function.Predicate.*;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,7 @@ import kafka.board.comment.entity.CommentPath;
 import kafka.board.comment.entity.CommentV2;
 import kafka.board.comment.repository.CommentRepositoryV2;
 import kafka.board.comment.service.request.CommentCreateRequestV2;
+import kafka.board.comment.service.response.CommentPageResponse;
 import kafka.board.comment.service.response.CommentResponse;
 import kuke.board.common.snowflake.Snowflake;
 import lombok.RequiredArgsConstructor;
@@ -82,5 +85,29 @@ public class CommentServiceV2 {
 			comment.getArticleId(),
 			comment.getCommentPath().getPath()
 		).isPresent();
+	}
+
+	/**
+	 * 댓글 목록 조회 (페이지 번호 방식)
+	 */
+	public CommentPageResponse readAll(Long articleId, Long page, Long pageSize) {
+		return CommentPageResponse.of(
+			commentRepository.findAll(articleId, (page - 1) * pageSize, pageSize).stream()
+				.map(CommentResponse::from)
+				.toList(),
+			commentRepository.count(articleId, PageLimitCalculator.calculatePageLimit(page, pageSize, 10L))
+		);
+	}
+
+	/**
+	 * 댓글 목록 조회(무한 스크롤 방식)
+	 */
+	public List<CommentResponse> readAllInfiniteScroll(Long articleId, String lastPath, Long pageSize) {
+		List<CommentV2> comments = lastPath == null ?
+			commentRepository.findAllInfiniteScroll(articleId, pageSize) :
+			commentRepository.findAllInfiniteScroll(articleId, lastPath, pageSize);
+		return comments.stream()
+			.map(CommentResponse::from)
+			.toList();
 	}
 }

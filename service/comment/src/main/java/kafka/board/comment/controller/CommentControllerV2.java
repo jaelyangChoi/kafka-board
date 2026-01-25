@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kafka.board.comment.service.CommentServiceV2;
-import kafka.board.comment.service.request.CommentCreateRequest;
 import kafka.board.comment.service.request.CommentCreateRequestV2;
 import kafka.board.comment.service.response.CommentPageResponse;
 import kafka.board.comment.service.response.CommentResponse;
@@ -39,4 +38,21 @@ public class CommentControllerV2 {
 		commentService.delete(commentId);
 	}
 
+	@GetMapping
+	public CommentPageResponse readAll(
+		@RequestParam("articleId") Long articleId,
+		@RequestParam("page") Long page,
+		@RequestParam("pageSize") Long pageSize
+	) {
+		return commentService.readAll(articleId, page, pageSize);
+	}
+
+	@GetMapping("/infinite-scroll")
+	public List<CommentResponse> readAllInfiniteScroll(
+		@RequestParam("articleId") Long articleId,
+		@RequestParam(value = "lastPath", required = false) String lastPath,
+		@RequestParam("pageSize") Long pageSize
+	) {
+		return commentService.readAllInfiniteScroll(articleId, lastPath, pageSize);
+	}
 }
