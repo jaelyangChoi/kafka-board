@@ -15,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 public class ArticleViewController {
 	private final ArticleViewService articleViewService;
 
-	@PostMapping("/articles/{articleId}")
-	public Long increase(@PathVariable("articleId") Long articleId) {
-		return articleViewService.increase(articleId);
+	@PostMapping("/articles/{articleId}/users/{userId}")
+	public Long increase(@PathVariable("articleId") Long articleId, @PathVariable("userId") Long userId) {
+		return articleViewService.increase(articleId, userId);
 	}
 
 	@GetMapping("/articles/{articleId}/count")
